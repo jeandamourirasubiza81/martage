@@ -1,0 +1,900 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mortgage Calculator</title>
+    <style>
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --navy: #133746;
+    --deep-navy: #123342;
+    --muted: #607781;
+    --lime: #d7df2f;
+    --pale-lime: #f8f9df;
+    --border: #91a8b0;
+    --page: #e2f5fc;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 35px 20px;
+    background: var(--page);
+    color: var(--navy);
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+}
+
+.calculator {
+    width: min(100%, 1010px);
+    min-height: 605px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: white;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 22px 50px rgba(19, 55, 70, 0.09);
+}
+
+.form-panel {
+    padding: 40px;
+}
+
+.heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 38px;
+}
+
+h1 {
+    font-size: 23px;
+    letter-spacing: -0.8px;
+    font-weight: 800;
+}
+
+#clearBtn {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    text-decoration: underline;
+    cursor: pointer;
+    font: inherit;
+    font-size: 14px;
+}
+
+.field {
+    margin-bottom: 24px;
+    min-width: 0;
+}
+
+.field > label,
+.mortgage-type legend {
+    display: block;
+    font-size: 15px;
+    color: var(--muted);
+    margin-bottom: 10px;
+}
+
+.input-wrap {
+    display: flex;
+    align-items: stretch;
+    height: 50px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.input-wrap:focus-within {
+    border-color: var(--lime);
+}
+
+.input-wrap input {
+    width: 100%;
+    min-width: 0;
+    border: none;
+    outline: none;
+    padding: 0 15px;
+    font: inherit;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--navy);
+    background: white;
+}
+
+.prefix,
+.suffix {
+    display: grid;
+    place-items: center;
+    padding: 0 15px;
+    font-weight: 700;
+    color: var(--navy);
+    background: #e4f4fa;
+    white-space: nowrap;
+}
+
+.amount-wrap .prefix {
+    background: var(--lime);
+    min-width: 44px;
+    font-size: 18px;
+}
+
+.suffix {
+    color: var(--muted);
+}
+
+.two-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+}
+
+.mortgage-type {
+    border: none;
+    padding: 0;
+    margin: 0 0 38px;
+}
+
+.mortgage-type legend {
+    margin-bottom: 10px;
+}
+
+.radio-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 50px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0 18px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    color: var(--navy);
+    font-weight: 700;
+}
+
+.radio-card input {
+    position: absolute;
+    opacity: 0;
+}
+
+.radio-mark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #8299a1;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.radio-card.selected {
+    border-color: var(--lime);
+    background: var(--pale-lime);
+}
+
+.radio-card.selected .radio-mark {
+    border-color: var(--lime);
+}
+
+.radio-card.selected .radio-mark::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--lime);
+}
+
+.radio-card:focus-within {
+    outline: 2px solid #9ca800;
+    outline-offset: 2px;
+}
+
+.calculate-btn {
+    border: none;
+    border-radius: 50px;
+    padding: 16px 28px;
+    background: var(--lime);
+    color: #20353b;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 54px;
+    transition: 0.2s;
+}
+
+.calculate-btn:hover {
+    background: #e1e94a;
+    transform: translateY(-2px);
+}
+
+.calculate-btn span {
+    font-size: 21px;
+}
+
+.error {
+    color: #b42318;
+    font-size: 13px;
+    margin: -20px 0 16px;
+}
+
+.error:empty {
+    display: none;
+}
+
+/* RESULTS PANEL */
+
+.results-panel {
+    background: var(--deep-navy);
+    color: white;
+    border-bottom-left-radius: 80px;
+    padding: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+}
+
+.empty-state {
+    text-align: center;
+    max-width: 390px;
+}
+
+.empty-state h2,
+.result-state h2 {
+    font-size: 22px;
+    margin: 28px 0 14px;
+}
+
+.empty-state p,
+.result-intro {
+    color: #a8c0cc;
+    font-size: 15px;
+    line-height: 1.65;
+}
+
+/* SIMPLE ILLUSTRATION */
+
+.illustration {
+    position: relative;
+    width: 170px;
+    height: 155px;
+    margin: 0 auto;
+}
+
+.paper {
+    position: absolute;
+    width: 85px;
+    height: 118px;
+    border: 1px solid #d8e6e9;
+    border-radius: 12px 5px 5px 12px;
+    transform: rotate(-12deg);
+    left: 34px;
+    top: 20px;
+    padding: 28px 12px 8px;
+}
+
+.paper span {
+    display: block;
+    height: 5px;
+    border-radius: 5px;
+    background: #f4fbfc;
+    margin-bottom: 9px;
+    width: 52px;
+}
+
+.paper span:nth-child(2) {
+    width: 42px;
+}
+
+.paper span:nth-child(3) {
+    width: 50px;
+}
+
+.paper span:nth-child(4) {
+    width: 35px;
+    background: var(--lime);
+}
+
+.paper b {
+    color: var(--lime);
+    font-size: 13px;
+}
+
+.pencil {
+    position: absolute;
+    width: 13px;
+    height: 70px;
+    background: var(--lime);
+    border: 2px solid #203c46;
+    border-radius: 5px;
+    transform: rotate(36deg);
+    left: 26px;
+    top: 60px;
+}
+
+.money {
+    position: absolute;
+    right: 20px;
+    top: 22px;
+    display: grid;
+    place-items: center;
+    background: white;
+    color: var(--deep-navy);
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    font-weight: 800;
+}
+
+.calculator-icon {
+    position: absolute;
+    width: 53px;
+    height: 76px;
+    right: 14px;
+    bottom: 6px;
+    border-radius: 10px;
+    background: var(--lime);
+    border: 2px solid #203c46;
+    transform: rotate(17deg);
+    padding: 28px 7px 7px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+}
+
+.calculator-icon::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    right: 7px;
+    top: 8px;
+    height: 13px;
+    border: 1px solid #526327;
+    border-radius: 3px;
+}
+
+.calculator-icon i {
+    border: 1px solid #64722b;
+    border-radius: 2px;
+}
+
+/* CALCULATED RESULTS */
+
+.result-state {
+    width: 100%;
+    align-self: stretch;
+}
+
+.result-state h2 {
+    margin: 0 0 12px;
+}
+
+.result-intro {
+    margin-bottom: 28px;
+}
+
+.monthly-box {
+    border-top: 4px solid var(--lime);
+    background: #0b2633;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 22px;
+}
+
+.monthly-box p,
+.total-box p {
+    color: #b3c6ce;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.monthly-box strong {
+    color: var(--lime);
+    font-size: clamp(28px, 3vw, 40px);
+    overflow-wrap: anywhere;
+}
+
+.total-box {
+    padding: 0 24px 24px;
+}
+
+.total-box strong {
+    display: block;
+    font-size: 20px;
+    margin-bottom: 20px;
+    overflow-wrap: anywhere;
+}
+
+.total-box hr {
+    border: none;
+    border-top: 1px solid #35515d;
+    margin-bottom: 22px;
+}
+
+.recalculate-btn {
+    border: 1px solid #9db3bc;
+    border-radius: 30px;
+    padding: 10px 18px;
+    background: transparent;
+    color: white;
+    font: inherit;
+    cursor: pointer;
+}
+
+.recalculate-btn:hover {
+    background: #234755;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+/* TABLET AND MOBILE */
+
+@media (max-width: 760px) {
+    body {
+        padding: 20px 14px;
+        align-items: start;
+    }
+
+    .calculator {
+        grid-template-columns: 1fr;
+        max-width: 520px;
+        border-radius: 18px;
+    }
+
+    .form-panel {
+        padding: 28px 24px 32px;
+    }
+
+    .heading {
+        margin-bottom: 28px;
+    }
+
+    h1 {
+        font-size: 21px;
+    }
+
+    .two-fields {
+        gap: 14px;
+    }
+
+    .results-panel {
+        min-height: 330px;
+        border-bottom-left-radius: 0;
+        border-radius: 0 0 18px 18px;
+        padding: 34px 25px;
+    }
+
+    .result-state {
+        align-self: auto;
+    }
+}
+
+@media (max-width: 390px) {
+    .form-panel {
+        padding: 24px 18px 28px;
+    }
+
+    .two-fields {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .calculate-btn {
+        width: 100%;
+        padding: 16px 12px;
+        font-size: 14px;
+    }
+
+    .results-panel {
+        padding: 28px 20px;
+    }
+
+    .monthly-box {
+        padding: 20px 16px;
+    }
+
+    .total-box {
+        padding: 0 16px 20px;
+    }
+}
+
+    </style>
+</head>
+<body>
+
+    <main class="calculator">
+
+        <!-- LEFT SIDE: FORM -->
+        <section class="form-panel">
+
+            <div class="heading">
+                <h1>Mortgage Calculator</h1>
+                <button type="button" id="clearBtn">Clear All</button>
+            </div>
+
+            <form id="mortgageForm">
+
+                <div class="field">
+                    <label for="amount">Mortgage Amount</label>
+
+                    <div class="input-wrap amount-wrap">
+                        <span class="prefix">£</span>
+                        <input
+                            type="number"
+                            id="amount"
+                            placeholder="300000"
+                            min="1"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="two-fields">
+
+                    <div class="field">
+                        <label for="term">Mortgage Term</label>
+
+                        <div class="input-wrap">
+                            <input
+                                type="number"
+                                id="term"
+                                placeholder="25"
+                                min="1"
+                                max="50"
+                                required
+                            >
+                            <span class="suffix">years</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="rate">Interest Rate</label>
+
+                        <div class="input-wrap">
+                            <input
+                                type="number"
+                                id="rate"
+                                placeholder="5.25"
+                                min="0"
+                                max="100"
+                                step="any"
+                                required
+                            >
+                            <span class="suffix">%</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <fieldset class="mortgage-type">
+                    <legend>Mortgage Type</legend>
+
+                    <label class="radio-card selected">
+                        <input
+                            type="radio"
+                            name="mortgageType"
+                            value="repayment"
+                            checked
+                        >
+                        <span class="radio-mark"></span>
+                        <span>Repayment</span>
+                    </label>
+
+                    <label class="radio-card">
+                        <input
+                            type="radio"
+                            name="mortgageType"
+                            value="interest"
+                        >
+                        <span class="radio-mark"></span>
+                        <span>Interest Only</span>
+                    </label>
+
+                </fieldset>
+
+                <p id="errorMessage" class="error"></p>
+
+                <button type="submit" class="calculate-btn">
+                    <span>▦</span>
+                    Calculate Repayments
+                </button>
+
+            </form>
+        </section>
+
+        <!-- RIGHT SIDE: RESULTS -->
+        <section class="results-panel">
+
+            <div id="emptyState" class="empty-state">
+
+                <div class="illustration">
+                    <div class="paper">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <b>=$$$</b>
+                    </div>
+
+                    <div class="pencil"></div>
+                    <div class="money">£</div>
+
+                    <div class="calculator-icon">
+                        <i></i><i></i>
+                        <i></i><i></i>
+                        <i></i><i></i>
+                    </div>
+                </div>
+
+                <h2>Results shown here</h2>
+
+                <p>
+                    Complete the form and click “calculate repayments”
+                    to see what your monthly repayments would be.
+                </p>
+
+            </div>
+
+            <div id="resultState" class="result-state" hidden>
+
+                <h2>Your results </h2>
+
+                <p class="result-intro">
+                    Your results are shown below based on the
+                    information you provided.
+                </p>
+
+                <div class="monthly-box">
+                    <p id="monthlyLabel">Your monthly repayments d'Amour</p>
+                    <strong id="monthlyPayment">£0.00</strong>
+                </div>
+
+                <div class="total-box">
+                    <p id="totalLabel">
+                        Total you'll repay over the term d'Amour
+                    </p>
+
+                    <strong id="totalPayment">£0.00</strong>
+
+                    <hr>
+
+                    <p>Total interest you'll pay</p>
+                    <strong id="totalInterest">£0.00</strong>
+                </div>
+
+                <button
+                    type="button"
+                    id="recalculateBtn"
+                    class="recalculate-btn"
+                >
+                    Edit details
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script >
+
+const form = document.getElementById("mortgageForm");
+
+const amountInput = document.getElementById("amount");
+const termInput = document.getElementById("term");
+const rateInput = document.getElementById("rate");
+
+const clearBtn = document.getElementById("clearBtn");
+const errorMessage = document.getElementById("errorMessage");
+
+const emptyState = document.getElementById("emptyState");
+const resultState = document.getElementById("resultState");
+
+const monthlyPayment = document.getElementById("monthlyPayment");
+const totalPayment = document.getElementById("totalPayment");
+const totalInterest = document.getElementById("totalInterest");
+
+const monthlyLabel = document.getElementById("monthlyLabel");
+const totalLabel = document.getElementById("totalLabel");
+
+const recalculateBtn = document.getElementById("recalculateBtn");
+
+const radioCards = document.querySelectorAll(".radio-card");
+
+// Format money in British pounds
+function money(value) {
+    return new Intl.NumberFormat("en-GB", {
+        style: "currency",
+        currency: "GBP",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(value);
+}
+
+// Get selected mortgage type
+function selectedMortgageType() {
+    return document.querySelector(
+        'input[name="mortgageType"]:checked'
+    ).value;
+}
+
+// Update selected radio button appearance
+function updateRadioStyles() {
+    radioCards.forEach((card) => {
+        const radio = card.querySelector("input");
+
+        card.classList.toggle(
+            "selected",
+            radio.checked
+        );
+    });
+}
+
+// Listen for mortgage type changes
+document.querySelectorAll(
+    'input[name="mortgageType"]'
+).forEach((radio) => {
+    radio.addEventListener("change", updateRadioStyles);
+});
+
+// Calculate mortgage repayments
+form.addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    errorMessage.textContent = "";
+
+    const principal = Number(amountInput.value);
+    const years = Number(termInput.value);
+    const annualRate = Number(rateInput.value);
+
+    // Validate mortgage amount
+    if (
+        amountInput.value.trim() === "" ||
+        !Number.isFinite(principal) ||
+        principal <= 0
+    ) {
+        errorMessage.textContent =
+            "Please enter a mortgage amount greater than zero.";
+
+        amountInput.focus();
+        return;
+    }
+
+    // Validate mortgage term
+    if (
+        termInput.value.trim() === "" ||
+        !Number.isInteger(years) ||
+        years < 1 ||
+        years > 50
+    ) {
+        errorMessage.textContent =
+            "Please enter a term between 1 and 50 whole years.";
+
+        termInput.focus();
+        return;
+    }
+
+    // Validate interest rate
+    if (
+        rateInput.value.trim() === "" ||
+        !Number.isFinite(annualRate) ||
+        annualRate < 0 ||
+        annualRate > 100
+    ) {
+        errorMessage.textContent =
+            "Please enter an interest rate between 0 and 100%.";
+
+        rateInput.focus();
+        return;
+    }
+
+    const months = years * 12;
+    const monthlyRate = annualRate / 100 / 12;
+
+    const type = selectedMortgageType();
+
+    let monthly;
+
+    if (type === "interest") {
+
+        // Interest Only calculation
+        monthly = principal * monthlyRate;
+
+        monthlyLabel.textContent =
+            "Your monthly interest payment";
+
+        totalLabel.textContent =
+            "Total amount including the original loan";
+
+        totalPayment.textContent = money(
+            monthly * months + principal
+        );
+
+        totalInterest.textContent = money(
+            monthly * months
+        );
+
+    } else {
+
+        // Repayment calculation
+        if (monthlyRate === 0) {
+            monthly = principal / months;
+        } else {
+            monthly =
+                principal *
+                monthlyRate /
+                (1 - Math.pow(
+                    1 + monthlyRate,
+                    -months
+                ));
+        }
+
+        monthlyLabel.textContent =
+            "Your monthly repayments";
+
+        totalLabel.textContent =
+            "Total you'll repay over the term";
+
+        totalPayment.textContent = money(
+            monthly * months
+        );
+
+        totalInterest.textContent = money(
+            monthly * months - principal
+        );
+    }
+
+    // Display results
+    monthlyPayment.textContent = money(monthly);
+
+    emptyState.hidden = true;
+    resultState.hidden = false;
+});
+
+// Clear all inputs and results
+function clearCalculator() {
+    form.reset();
+
+    errorMessage.textContent = "";
+
+    emptyState.hidden = false;
+    resultState.hidden = true;
+
+    updateRadioStyles();
+}
+
+clearBtn.addEventListener(
+    "click",
+    clearCalculator
+);
+
+// Return to the form to edit details
+recalculateBtn.addEventListener("click", function() {
+    resultState.hidden = true;
+    emptyState.hidden = false;
+
+    amountInput.focus();
+});
+
+    </script>
+</body>
+</html>
